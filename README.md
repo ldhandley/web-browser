@@ -1,3 +1,3 @@
 web-browser
 ===========
-README text here.
+`web-browser` is a CodeSpells mod! Learn more at https://codespells.org.
