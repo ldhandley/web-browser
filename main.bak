@@ -1,0 +1,94 @@
+#lang at-exp codespells
+
+(provide uri-encode)
+
+(require web-browser/mod-info
+         net/uri-codec
+         website-js)
+
+(require-mod dev-runes)
+(require-mod hierarchy)
+
+(provide meme-video
+         family-guy-christmas
+         serve-html-url)
+
+(define family-guy-christmas "https://img-9gag-fun.9cache.com/photo/adV38YV_460svvp9.webm")
+
+(define (meme-video url)
+  (web-browser (serve-html-url (video src: url
+                                      controls: "true"
+                                      style: (properties position: "fixed"
+                                                         left: 0
+                                                         right: 0
+                                                         min-height: "100%"
+                                                         margin: "auto")))))
+
+(define (serve-html-url html)
+  (~a "http://localhost:8081/serve-html?html=" (uri-encode (element->string html))))
+
+#|
+
+(web-browser
+ (serve-html-url 
+  (card 
+   (card-body 
+    (enclose (button-danger on-click: (call 'change) "DON'T PUSH!!")
+             (script ()
+                     (function (change)
+                               (js "document.body.style.backgroundColor = 'black'"))
+              ))))))
+
+|#
+
+
+;Duplicate of web-browser code.  Consolidate
+(provide web-browser-js)
+(define (web-browser-js url)
+ (thunk
+   @unreal-js{
+ (function(){
+  const uclass = require('uclass')().bind(this,global);
+  class ThreeDWidget extends Root.ResolveClass("3DWidget") {
+                                                     
+  }      
+  let ThreeDWidget_C = uclass(ThreeDWidget);
+  var widget = new ThreeDWidget_C(GWorld,{X:@(current-x), Y:@(current-z), Z:@(current-y)});
+  widget.GetComponentByClass(WidgetComponent).Widget.WebBrowser.InitialURL = @url;
+  return widget;
+  })()})
+  )
+
+(define-classic-rune (web-browser url)
+  #:background "blue"
+  #:foreground (rectangle 50 40 'solid 'blue)
+ (thunk
+   @unreal-js{
+ (function(){
+  const uclass = require('uclass')().bind(this,global);
+  class ThreeDWidget extends Root.ResolveClass("3DWidget") {
+                                                     
+  }      
+  let ThreeDWidget_C = uclass(ThreeDWidget);
+  var widget = new ThreeDWidget_C(GWorld,{X:@(current-x), Y:@(current-z), Z:@(current-y)});
+  widget.GetComponentByClass(WidgetComponent).Widget.WebBrowser.InitialURL = "@url";
+  return widget;
+  })()})
+  )
+
+(define-classic-rune-lang my-mod-lang #:eval-from main.rkt
+  (web-browser))
+
+(module+ main
+  (codespells-workspace ;TODO: Change this to your local workspace if different
+   (build-path (current-directory) ".." ".."))
+  
+  (once-upon-a-time
+   #:world (arena-world)
+   #:aether (demo-aether
+             #:lang (append-rune-langs #:name main.rkt
+                                       (my-mod-lang #:with-paren-runes? #t)
+                                       (dev-runes:my-mod-lang)
+                                       (hierarchy:my-mod-lang)))))
+
+
