@@ -13,7 +13,7 @@
          show-location)
 
 (define (serve-html-url html)
-  (~a "http://localhost:8081/serve-html?html=" (uri-encode (element->string html))))
+  (~a "http://localhost:" (codespells-server-port) "/serve-html?html=" (uri-encode (element->string html))))
 
 (define-classic-rune (web-browser url)
   #:background "blue"
@@ -31,6 +31,32 @@
   return widget;
   })()})
   )
+
+(define-classic-rune (scale-web-browser xy-vector obj)
+  #:background "blue"
+  #:foreground (rectangle 50 40 'solid 'blue)
+ (thunk
+   @unreal-js{
+ (function(){
+  var three_dee_widget = @(if (procedure? obj)
+                              (obj)
+                              obj);
+
+  var b = three_dee_widget.Browser;
+
+  var s = three_dee_widget.Scene;
+
+  var vect = @xy-vector();
+
+  b.DrawSize.X = b.DrawSize.X * vect.X;
+  b.DrawSize.Y = b.DrawSize.Y * vect.Y;
+
+  s.SetRelativeScale3D({X: vect.Y, Y: vect.X, Z: 1});
+  
+  return three_dee_widget;
+  })()})
+  )
+
 
 ; create-location-shower and show-location are demos of how
 ; you can create UI that is aware of the state of the game in Unreal.

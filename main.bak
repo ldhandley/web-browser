@@ -9,55 +9,11 @@
 (require-mod dev-runes)
 (require-mod hierarchy)
 
-(provide meme-video
-         family-guy-christmas
-         serve-html-url)
-
-(define family-guy-christmas "https://img-9gag-fun.9cache.com/photo/adV38YV_460svvp9.webm")
-
-(define (meme-video url)
-  (web-browser (serve-html-url (video src: url
-                                      controls: "true"
-                                      style: (properties position: "fixed"
-                                                         left: 0
-                                                         right: 0
-                                                         min-height: "100%"
-                                                         margin: "auto")))))
+(provide serve-html-url
+         show-location)
 
 (define (serve-html-url html)
   (~a "http://localhost:8081/serve-html?html=" (uri-encode (element->string html))))
-
-#|
-
-(web-browser
- (serve-html-url 
-  (card 
-   (card-body 
-    (enclose (button-danger on-click: (call 'change) "DON'T PUSH!!")
-             (script ()
-                     (function (change)
-                               (js "document.body.style.backgroundColor = 'black'"))
-              ))))))
-
-|#
-
-
-;Duplicate of web-browser code.  Consolidate
-(provide web-browser-js)
-(define (web-browser-js url)
- (thunk
-   @unreal-js{
- (function(){
-  const uclass = require('uclass')().bind(this,global);
-  class ThreeDWidget extends Root.ResolveClass("3DWidget") {
-                                                     
-  }      
-  let ThreeDWidget_C = uclass(ThreeDWidget);
-  var widget = new ThreeDWidget_C(GWorld,{X:@(current-x), Y:@(current-z), Z:@(current-y)});
-  widget.GetComponentByClass(WidgetComponent).Widget.WebBrowser.InitialURL = @url;
-  return widget;
-  })()})
-  )
 
 (define-classic-rune (web-browser url)
   #:background "blue"
@@ -76,6 +32,62 @@
   })()})
   )
 
+(define-classic-rune (scale-web-browser xy-vector obj)
+  #:background "blue"
+  #:foreground (rectangle 50 40 'solid 'blue)
+ (thunk
+   @unreal-js{
+ (function(){
+  var three_dee_widget = @(if (procedure? obj)
+                              (obj)
+                              obj);
+
+  var b = three_dee_widget.Browser;
+
+  var s = three_dee_widget.Scene;
+
+  var vect = @xy-vector();
+
+  b.DrawSize.X = b.DrawSize.X * vect.X;
+  b.DrawSize.Y = b.DrawSize.Y * vect.Y;
+
+  s.SetRelativeScale3D({X: vect.Y, Y: vect.X, Z: 1});
+  
+  return three_dee_widget;
+  })()})
+  )
+
+
+; create-location-shower and show-location are demos of how
+; you can create UI that is aware of the state of the game in Unreal.
+; TODO: cleanup and document the message queue in codespells-server/lang.
+(define (create-location-shower)
+  (web-browser
+   (serve-html-url
+    (enclose
+     (div id: (id 'output))
+     (script ([construct (call 'constructor)])
+             (function (constructor)
+                       @js{
+ fetch("http://localhost:8081/messages/last")
+ .then(response => response.json())
+ .then(data => {document.getElementById(@(~j "NAMESPACE_output")).innerHTML = JSON.stringify(data)});
+ }))))))
+
+(define (show-location)
+  @unreal-js{
+ (function(){ 
+  var ret = @(create-location-shower);
+
+  let HttpHelper = Root.ResolveClass("HttpHelper");
+  let helper = new HttpHelper(GWorld);
+  helper.Post("http://localhost:8081/messages",
+              JSON.stringify({message:{location: ret.GetActorLocation()}}));
+ 
+  return ret
+  })()
+  })
+
 (define-classic-rune-lang my-mod-lang #:eval-from main.rkt
   (web-browser))
 
@@ -90,5 +102,3 @@
                                        (my-mod-lang #:with-paren-runes? #t)
                                        (dev-runes:my-mod-lang)
                                        (hierarchy:my-mod-lang)))))
-
-
