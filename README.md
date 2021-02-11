@@ -18,4 +18,3 @@ Open up `main.rkt` and adjust the `codespells-workspace` accordingly. Run.
 `(require-mod web-browser)`
 
 This gives you access to `web-browser:my-mod-lang` which you can combine into your mod's rune lang with `append-rune-langs`.
-
